@@ -32,5 +32,13 @@ app.get("/", (req, res) => {
 //         })
 // })
 
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`server is running on port: ${PORT}`));
+// const PORT = process.env.PORT || 4000;
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`server running on http://localhost:${PORT}`))
+}
+
+// app.listen(PORT, () => console.log(`server is running on port: ${PORT}`));
+
+export default app
