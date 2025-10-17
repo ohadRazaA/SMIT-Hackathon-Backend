@@ -6,12 +6,14 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     // restaurant: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant' },
-    roles: [{
+    type: {
         type: String,
-        enum: ["user", "admin", "vendor"]
-    }],
+        enum: ["user", "admin", "vendor"],
+        default: "user"
+    },
     isVerified: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now() }
 });
 
-export default mongoose.model('user', userSchema);
+const userModel = mongoose.model('user', userSchema);
+export default userModel;

@@ -3,9 +3,6 @@ import dotenv from "dotenv"
 import cors from "cors"
 import userRoutes from './routes/authRoutes.js'
 import dbConnection from "./config/db.js";
-// import { authMiddleware } from "./middlewares/auth.js";
-// import { cloudinaryUploader } from "./config/cloudinary.js";
-// import upload from "./middlewares/multer.js";
 
 dotenv.config();
 
@@ -34,11 +31,12 @@ app.get("/", (req, res) => {
 
 // const PORT = process.env.PORT || 4000;
 // For local development
-if (process.env.NODE_ENV !== 'production') {
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`server running on http://localhost:${PORT}`))
-}
+// if (process.env.NODE_ENV !== 'production') {
+//     const PORT = process.env.PORT || 5000;
+//     app.listen(PORT, () => console.log(`server running on http://localhost:${PORT}`))
+// }
 
-// app.listen(PORT, () => console.log(`server is running on port: ${PORT}`));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`server is running on port: ${PORT}`));
 
 export default app
