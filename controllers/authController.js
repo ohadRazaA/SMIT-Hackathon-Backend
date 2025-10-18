@@ -1,8 +1,8 @@
 import userModel from "../models/userModel.js";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken"
-import nodemailer from "nodemailer"
-import { SignupEmailTemplate } from "../templates/emailTemplate.js"
+import OTPModel from "../models/otp.js";
+import { sendMail } from "../utils.js";
 
 const signupController = async (req, res) => {
     try {
@@ -33,30 +33,10 @@ const signupController = async (req, res) => {
         });
         const user = await userModel.create(myUser);
 
-        const transporter = nodemailer.createTransport({
-            service: "Gmail",
-            host: "smtp.gmail.com",
-            port: 465,
-            secure: true,
-            auth: {
-                user: process.env.EMAIL,
-                pass: process.env.APP_PASSWORD,
-            },
-        });
-
-        const otp = Math.floor(100000 + Math.random() * 900000);
-
-        const mailOptions = {
-            from: process.env.EMAIL,
-            to: user.email,
-            subject: "User Signup",
-            html: SignupEmailTemplate(user, otp)
-        };
-
-        const userEmail = await transporter.sendMail(mailOptions);
+        await sendMail(email, user);
 
         res.status(201).json({
-            message: "User registered successfully! Please check your email for verification."  
+            message: "User registered successfully! Please check your email for verification."
         });
     } catch (error) {
         res.status(500).json({
@@ -82,17 +62,61 @@ const loginController = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(401).json({ message: 'INVALID EMAIL OR PASSWORD', status: false });
 
+
+        if (!user.isVerified || user.TwoFAEnabled) {
+            await sendMail(email, user);
+            return res.status(200).json({
+                message: "USER VERIFIED",
+                data: user,
+                status: true,
+            })
+        }
+
         const PRIVATE_KEY = process.env.jwtPrivateKey
         const token = jwt.sign({ id: user._id }, PRIVATE_KEY)
         res.status(200).json({
             message: "USER SUCCESSFULLY LOGIN",
             data: user,
             status: true,
-            token
+            isVerified: user.isVerified,
+            token: token || null
         })
 
     } catch (err) {
         res.status(500).json({ message: 'Server error, Try again later', status: false });
+    }
+}
+
+const OTPVerifyController = async (req, res) => {
+    try {
+        const { otp, email, id } = req.body
+
+        const otpRes = await OTPModel.findOne({ email, otp, isUsed: false })
+        console.log("otpRes", otpRes)
+
+        if (!otpRes) {
+            return res.json({
+                message: "OTP InValid",
+                status: false
+            })
+        }
+
+        otpRes.isUsed = true
+        await otpRes.save()
+
+        await userModel.findOneAndUpdate({ email }, { isVerified: true })
+
+        const PRIVATE_KEY = process.env.jwtPrivateKey
+        const token = jwt.sign({ id }, PRIVATE_KEY)
+
+        res.json({
+            message: "Account verified",
+            token,
+            status: true
+        })
+
+    } catch (error) {
+        console.log("error", error.message)
     }
 }
 
@@ -111,5 +135,6 @@ const getUser = async (req, res) => {
 export {
     signupController,
     loginController,
+    OTPVerifyController,
     getUser
 };

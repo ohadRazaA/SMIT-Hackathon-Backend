@@ -62,14 +62,14 @@ export const SignupEmailTemplate = (user, otp) => {
       <h2>Verify Your Account</h2>
     </div>
     <div class="content">
-      <p>Hi <strong>${user.fullName}</strong>,</p>
+      <p>Hi <strong>${user.firstName + " " + user.lastName}</strong>,</p>
       <p>Thanks for signing up! Please verify your email address to complete your registration.</p>
       <p><strong>Email:</strong> ${user.email}</p>
 
       <p>Your One-Time Password (OTP) is:</p>
       <div class="otp-box">${otp}</div>
 
-      <p>This OTP will expire in <strong>10 minutes</strong>.</p>
+      <p>This OTP will expire in <strong>2 minutes</strong>.</p>
       <p>If you did not request this, you can safely ignore this message.</p>
     </div>
     <div class="footer">
