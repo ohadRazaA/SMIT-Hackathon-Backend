@@ -5,7 +5,6 @@ const userSchema = new mongoose.Schema({
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    // restaurant: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant' },
     type: {
         type: String,
         enum: ["user", "admin", "vendor"],
@@ -13,6 +12,34 @@ const userSchema = new mongoose.Schema({
     },
     isVerified: { type: Boolean, default: false },
     TwoFAEnabled: { type: Boolean, default: false },
+    // Health-specific fields
+    dateOfBirth: { type: Date },
+    gender: { 
+        type: String, 
+        enum: ['male', 'female', 'other'] 
+    },
+    bloodType: { 
+        type: String, 
+        enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] 
+    },
+    medicalHistory: [String],
+    allergies: [String],
+    emergencyContact: {
+        name: String,
+        phone: String,
+        relationship: String
+    },
+    preferences: {
+        language: { 
+            type: String, 
+            enum: ['english', 'urdu', 'both'], 
+            default: 'both' 
+        },
+        notifications: { 
+            type: Boolean, 
+            default: true 
+        }
+    },
     createdAt: { type: Date, default: Date.now() }
 }, { timestamps: true });
 

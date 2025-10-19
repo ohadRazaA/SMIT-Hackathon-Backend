@@ -2,6 +2,7 @@ import express from "express"
 import dotenv from "dotenv"
 import cors from "cors"
 import userRoutes from './routes/authRoutes.js'
+import healthRoutes from './routes/healthRoutes.js'
 import dbConnection from "./config/db.js";
 
 dotenv.config();
@@ -13,6 +14,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cors())
 dbConnection();
 app.use("/api/auth", userRoutes);
+app.use("/api/health", healthRoutes);
 
 app.get("/", (req, res) => {
     res.send("SERVER UP")

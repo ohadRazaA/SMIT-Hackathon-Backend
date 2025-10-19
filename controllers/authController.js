@@ -2,7 +2,7 @@ import userModel from "../models/userModel.js";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken"
 import OTPModel from "../models/otp.js";
-import { sendMail } from "../utils.js";
+import { sendMail } from "../utils/sendEmail.js";
 
 const signupController = async (req, res) => {
     try {
@@ -33,7 +33,7 @@ const signupController = async (req, res) => {
         });
         const user = await userModel.create(myUser);
 
-        await sendMail(email, user);
+        await sendMail(user);
 
         res.status(201).json({
             message: "User registered successfully! Please check your email for verification."
@@ -64,7 +64,7 @@ const loginController = async (req, res) => {
 
 
         if (!user.isVerified || user.TwoFAEnabled) {
-            await sendMail(email, user);
+            await sendMail(user);
             return res.status(200).json({
                 message: "USER VERIFIED",
                 data: user,
@@ -83,13 +83,14 @@ const loginController = async (req, res) => {
         })
 
     } catch (err) {
-        res.status(500).json({ message: 'Server error, Try again later', status: false });
+        res.status(500).json({ message: err, status: false });
     }
 }
 
 const OTPVerifyController = async (req, res) => {
     try {
         const { otp, email, id } = req.body
+        console.log("req.body", req.body)
 
         const otpRes = await OTPModel.findOne({ email, otp, isUsed: false })
         console.log("otpRes", otpRes)
@@ -132,9 +133,98 @@ const getUser = async (req, res) => {
     }
 }
 
+const forgotPasswordController = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                message: "Email is required",
+                status: false
+            });
+        }
+
+        const user = await userModel.findOne({ email });
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+                status: false
+            });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000);
+
+        await OTPModel.create({
+            otp,
+            email,
+            isUsed: false
+        });
+
+        await sendPasswordResetMail(email, user, otp);
+
+        res.status(200).json({
+            message: "Password reset OTP sent to your email",
+            status: true
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+            status: false
+        });
+    }
+};
+
+const resetPasswordController = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({
+                message: "All fields are required",
+                status: false
+            });
+        }
+
+        const otpRecord = await OTPModel.findOne({
+            email,
+            otp,
+            isUsed: false
+        });
+
+        if (!otpRecord) {
+            return res.status(400).json({
+                message: "Invalid or expired OTP",
+                status: false
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+        await userModel.findOneAndUpdate(
+            { email },
+            { password: hashedPassword }
+        );
+
+        otpRecord.isUsed = true;
+        await otpRecord.save();
+
+        res.status(200).json({
+            message: "Password reset successfully",
+            status: true
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+            status: false
+        });
+    }
+};
+
 export {
     signupController,
     loginController,
     OTPVerifyController,
-    getUser
+    getUser,
+    forgotPasswordController,
+    resetPasswordController
 };
