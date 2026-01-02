@@ -1,23 +1,29 @@
-import express from "express"
-import dotenv from "dotenv"
-import cors from "cors"
-import userRoutes from './routes/authRoutes.js'
+import express from "express";
+import { configDotenv } from "dotenv";
+import cors from "cors";
+import authRoutes from "./routes/authRoutes.js";
+import memberRoutes from "./routes/memberRoutes.js";
+import vitalRoutes from "./routes/vitalRoutes.js";
+import reportRoutes from "./routes/reportRoutes.js";
 import dbConnection from "./config/db.js";
 
-dotenv.config();
+configDotenv();
 
 const app = express();
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(cors())
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 dbConnection();
-app.use("/api/auth", userRoutes);
+
+app.use("/api/auth", authRoutes);
+app.use("/api/health", memberRoutes);
+app.use("/api/health", vitalRoutes);
+app.use("/api/health", reportRoutes);
 
 app.get("/", (req, res) => {
-    res.send("SERVER UP")
-
-})
+  res.send("SERVER UP");
+});
 // app.post('/hello', upload.any("image") , async (req, res) => {
 //         const filePath = req.files[0].path
 //         const imageRes = await cloudinaryUploader.upload(filePath)

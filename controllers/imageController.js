@@ -4,15 +4,13 @@ export const uploadImageController = async (req, res) => {
     try {
         const filePath = req.files[0].path;
         const imageRes = await cloudinaryUploader.upload(filePath)
-        res.json({
+        res.status(200).json({
             message: "IMAGE UPLOAD",
-            url: imageRes.secure_url,
-            status: true
+            url: imageRes.secure_url
         })
 
     } catch (error) {
-        res.json({
-            status: false,
+        res.status(500).json({
             message: error.message
         })
     }
