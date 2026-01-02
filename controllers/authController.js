@@ -254,5 +254,7 @@ export {
     signupController,
     loginController,
     OTPVerifyController,
-    getUser
+    getUser,
+    forgotPasswordController,
+    resetPasswordController
 };
